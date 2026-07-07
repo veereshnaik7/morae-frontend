@@ -1,16 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
 import AuthBox from "./AuthBox";
-import { forgotPassword } from "../../features/auth/authSlice";
+import { clearAuthMessage, forgotPassword } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useToast } from "../../components/ToastProvider";
 
 const ForgotPassword = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const { loading, message, error } = useAppSelector((state) => state.auth);
 
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      dispatch(clearAuthMessage());
+    }
+
+    if (error) {
+      toast.error(error);
+      dispatch(clearAuthMessage());
+    }
+  }, [dispatch, error, message, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +46,6 @@ const ForgotPassword = () => {
 
       <h1 className="text-4xl font-bold mb-3">Forgot password</h1>
       <p className="text-xl mb-8">Enter your email to receive OTP.</p>
-
-      {message && <p className="mb-4 text-green-700 font-medium">{message}</p>}
-      {error && <p className="mb-4 text-red-600 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">

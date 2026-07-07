@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import api from "../../features/api";
 import { logoutUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useToast } from "../../components/ToastProvider";
 
 const Profile = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const toast = useToast();
     const authUser = useAppSelector((state) => state.auth.user);
 
     const [profileForm, setProfileForm] = useState({
@@ -25,13 +27,10 @@ const Profile = () => {
     const [passwordModalOpen, setPasswordModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
 
     const loadProfile = async () => {
         try {
             setLoading(true);
-            setError("");
 
             const profileRes = await api.get("/users/me");
 
@@ -40,7 +39,7 @@ const Profile = () => {
                 email: profileRes.data.data?.email || authUser?.email || "",
             });
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not load profile");
+            toast.error(err.response?.data?.error || "Could not load profile");
         } finally {
             setLoading(false);
         }
@@ -55,14 +54,12 @@ const Profile = () => {
 
         try {
             setSaving(true);
-            setError("");
-            setMessage("");
 
             await api.patch("/users/update", profileForm);
 
-            setMessage("Profile updated");
+            toast.success("Profile updated");
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not update profile");
+            toast.error(err.response?.data?.error || "Could not update profile");
         } finally {
             setSaving(false);
         }
@@ -73,8 +70,6 @@ const Profile = () => {
 
         try {
             setSaving(true);
-            setError("");
-            setMessage("");
 
             const res = await api.post("/auth/change-password", passwordForm);
 
@@ -85,14 +80,14 @@ const Profile = () => {
             });
 
             setPasswordModalOpen(false);
-            setMessage(res.data.message || "Password changed");
+            toast.success(res.data.message || "Password changed");
 
             setTimeout(async () => {
                 await dispatch(logoutUser());
                 navigate("/login", { replace: true });
             }, 900);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not change password");
+            toast.error(err.response?.data?.error || "Could not change password");
         } finally {
             setSaving(false);
         }
@@ -101,18 +96,6 @@ const Profile = () => {
     return (
         <>
             <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-8">
-                {error && (
-                    <p className="mb-4 w-full max-w-xl rounded-md bg-red-50 px-4 py-3 text-red-700">
-                        {error}
-                    </p>
-                )}
-
-                {message && (
-                    <p className="mb-4 w-full max-w-xl rounded-md bg-green-50 px-4 py-3 text-green-700">
-                        {message}
-                    </p>
-                )}
-
                 {loading ? (
                     <div className="w-full max-w-xl rounded-md bg-white p-6 text-center font-medium">
                         Loading...
@@ -162,11 +145,7 @@ const Profile = () => {
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setError("");
-                                    setMessage("");
-                                    setPasswordModalOpen(true);
-                                }}
+                                onClick={() => setPasswordModalOpen(true)}
                                 className="h-12 rounded-md border border-black px-5 font-semibold text-black transition hover:bg-black hover:text-white"
                             >
                                 Change Password

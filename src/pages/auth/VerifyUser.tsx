@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import AuthBox from "./AuthBox";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { verifyUser } from "../../features/auth/authSlice";
+import { clearAuthMessage, verifyUser } from "../../features/auth/authSlice";
+import { useToast } from "../../components/ToastProvider";
 
 const VerifyUser = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const toast = useToast();
   const { loading, message, error } = useAppSelector((state) => state.auth);
 
   const [form, setForm] = useState({
@@ -19,6 +21,18 @@ const VerifyUser = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      dispatch(clearAuthMessage());
+    }
+
+    if (error) {
+      toast.error(error);
+      dispatch(clearAuthMessage());
+    }
+  }, [dispatch, error, message, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +55,6 @@ const VerifyUser = () => {
 
       <h1 className="text-4xl font-bold mb-3">Verify account</h1>
       <p className="text-xl mb-8">Enter the OTP sent to your email.</p>
-
-      {message && <p className="mb-4 text-green-700 font-medium">{message}</p>}
-      {error && <p className="mb-4 text-red-600 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">

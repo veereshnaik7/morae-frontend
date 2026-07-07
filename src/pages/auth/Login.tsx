@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import AuthBox from "./AuthBox";
-import { loginUser } from "../../features/auth/authSlice";
+import { clearAuthMessage, loginUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useToast } from "../../components/ToastProvider";
 
 const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const { loading, error } = useAppSelector((state) => state.auth);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +21,13 @@ const Login = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearAuthMessage());
+    }
+  }, [dispatch, error, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +43,6 @@ const Login = () => {
     <AuthBox>
       <h1 className="text-4xl font-bold mb-3">Welcome back</h1>
       <p className="text-xl mb-8">Login to continue your account.</p>
-
-      {error && <p className="mb-4 text-red-600 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">

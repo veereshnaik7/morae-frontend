@@ -13,6 +13,7 @@ import {
     Search,
 } from "lucide-react";
 import api from "../../features/api";
+import { useToast } from "../../components/ToastProvider";
 
 type Task = {
     _id: string;
@@ -45,6 +46,7 @@ const statusBadgeClass: Record<Task["status"], string> = {
 };
 
 const Tasks = () => {
+    const toast = useToast();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [taskTotal, setTaskTotal] = useState(0);
     const [totalTaskPages, setTotalTaskPages] = useState(1);
@@ -61,8 +63,6 @@ const Tasks = () => {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
 
     const completedCount = useMemo(
         () => tasks.filter((task) => task.status === "completed").length,
@@ -80,7 +80,6 @@ const Tasks = () => {
     const loadTasks = async (page = 1) => {
         try {
             setLoading(true);
-            setError("");
 
             const tasksRes = await api.get("/tasks", {
                 params: {
@@ -96,7 +95,7 @@ const Tasks = () => {
             setTaskPage(tasksRes.data.data?.pagination?.page || page);
             setTotalTaskPages(tasksRes.data.data?.pagination?.totalPages || 1);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not load tasks");
+            toast.error(err.response?.data?.error || "Could not load tasks");
         } finally {
             setLoading(false);
         }
@@ -123,23 +122,21 @@ const Tasks = () => {
 
         try {
             setSaving(true);
-            setError("");
-            setMessage("");
 
             const nextPage = editingTaskId ? taskPage : 1;
 
             if (editingTaskId) {
                 await api.patch(`/tasks/${editingTaskId}`, taskForm);
-                setMessage("Task updated successfully");
+                toast.success("Task updated successfully");
             } else {
                 await api.post("/tasks", taskForm);
-                setMessage("Task created successfully");
+                toast.success("Task created successfully");
             }
 
             resetTaskForm();
             await loadTasks(nextPage);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not save task");
+            toast.error(err.response?.data?.error || "Could not save task");
         } finally {
             setSaving(false);
         }
@@ -162,18 +159,20 @@ const Tasks = () => {
             await api.patch(`/tasks/${task._id}`, {
                 status: task.status === "completed" ? "pending" : "completed",
             });
+            toast.success("Task status updated");
             await loadTasks(taskPage);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not update task");
+            toast.error(err.response?.data?.error || "Could not update task");
         }
     };
 
     const deleteTask = async (taskId: string) => {
         try {
             await api.delete(`/tasks/${taskId}`);
+            toast.success("Task deleted successfully");
             await loadTasks(taskPage);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Could not delete task");
+            toast.error(err.response?.data?.error || "Could not delete task");
         }
     };
 
@@ -214,22 +213,6 @@ const Tasks = () => {
                     </div>
                 </div>
             </header>
-
-            {(error || message) && (
-                <div className="px-5 pt-5 sm:px-6">
-                    {error && (
-                        <p className="rounded-[4px] bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                            {error}
-                        </p>
-                    )}
-
-                    {message && (
-                        <p className="rounded-[4px] bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
-                            {message}
-                        </p>
-                    )}
-                </div>
-            )}
 
             <div className="grid gap-3 bg-neutral-50 px-3 pt-3 sm:grid-cols-[1fr_220px]">
                 <div className="relative">

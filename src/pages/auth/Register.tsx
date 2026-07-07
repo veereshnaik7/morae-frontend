@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   User,
@@ -10,12 +10,14 @@ import {
   ArrowRight,
 } from "lucide-react";
 import AuthBox from "./AuthBox";
-import { registerUser } from "../../features/auth/authSlice";
+import { clearAuthMessage, registerUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useToast } from "../../components/ToastProvider";
 
 const Register = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const toast = useToast();
   const { loading, error } = useAppSelector((state) => state.auth);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +32,13 @@ const Register = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearAuthMessage());
+    }
+  }, [dispatch, error, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +59,6 @@ const Register = () => {
 
       <h1 className="text-4xl font-bold mb-3">Create account</h1>
       <p className="text-xl mb-8">Register to get started for free.</p>
-
-      {error && <p className="mb-4 text-red-600 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">

@@ -14,9 +14,19 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const displayName = authUser?.name || "User";
-  const displayEmail = authUser?.email || "";
-  const displayInitial = displayName.trim().charAt(0).toUpperCase() || "U";
+  const userRecord = (authUser as any)?.user || authUser;
+  const displayEmail = userRecord?.email || "";
+  const displayName =
+    userRecord?.name ||
+    userRecord?.firstName ||
+    userRecord?.username ||
+    displayEmail.split("@")[0] ||
+    "User";
+  const displayInitial =
+    (userRecord?.name || userRecord?.firstName || displayEmail || displayName)
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "U";
   const showSidebarText = sidebarOpen || mobileSidebarOpen;
 
   const handleLogout = async () => {

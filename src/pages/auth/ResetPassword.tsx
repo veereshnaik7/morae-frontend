@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Mail,
@@ -11,13 +11,15 @@ import {
   ArrowRight,
 } from "lucide-react";
 import AuthBox from "./AuthBox";
-import { resetPassword } from "../../features/auth/authSlice";
+import { clearAuthMessage, resetPassword } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useToast } from "../../components/ToastProvider";
 
 const ResetPassword = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const toast = useToast();
   const { loading, message, error } = useAppSelector((state) => state.auth);
 
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -33,6 +35,18 @@ const ResetPassword = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (message) {
+      toast.success(message);
+      dispatch(clearAuthMessage());
+    }
+
+    if (error) {
+      toast.error(error);
+      dispatch(clearAuthMessage());
+    }
+  }, [dispatch, error, message, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,9 +69,6 @@ const ResetPassword = () => {
 
       <h1 className="text-4xl font-bold mb-3">Reset password</h1>
       <p className="text-xl mb-8">Enter OTP and create a new password.</p>
-
-      {message && <p className="mb-4 text-green-700 font-medium">{message}</p>}
-      {error && <p className="mb-4 text-red-600 font-medium">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">
