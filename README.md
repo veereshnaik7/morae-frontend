@@ -1,75 +1,138 @@
-# React + TypeScript + Vite
+# Task Management App - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Live URL: https://morae-frontend.vercel.app/
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This is the frontend for a Task Management App. Users can register, verify their account, log in, manage their profile, and perform task operations such as creating, editing, deleting, filtering, and marking tasks as completed.
 
-## React Compiler
+The frontend is built using React with TypeScript and styled with Tailwind CSS.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- User registration
+- User login
+- Email verification flow
+- Forgot password and reset password flow
+- Protected routes
+- Task dashboard
+- Create new tasks
+- Edit existing tasks
+- Delete tasks
+- Mark tasks as completed
+- Filter tasks by status
+- Paginated task listing
+- Responsive dashboard layout
+- Toast notifications for API responses
+- Axios API integration
+- JWT authentication handled through backend cookies
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React
+- TypeScript
+- Redux Toolkit
+- React Router
+- Axios
+- Tailwind CSS
+- Vite
+- Lucide React icons
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Project Setup
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Install dependencies:
 
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run dev
 ```
+
+Build for production:
+
+```bash
+npm run build
+```
+
+
+## Folder Structure
+
+```txt
+src/
+  app/
+    hooks.ts
+    store.ts
+  components/
+    ProtectedRoute.tsx
+    ToastProvider.tsx
+  features/
+    api.ts
+    auth/
+      authApi.ts
+      authSlice.ts
+  pages/
+    auth/
+      Login.tsx
+      Register.tsx
+      VerifyUser.tsx
+      ForgotPassword.tsx
+      ResetPassword.tsx
+    Dashboard/
+      Dashboard.tsx
+      Tasks.tsx
+      Profile.tsx
+```
+
+## Main Routes
+
+- `/login` - User login
+- `/register` - User registration
+- `/verify-user` - Email OTP verification
+- `/forgot-password` - Request password reset OTP
+- `/reset-password` - Reset password
+- `/tasks` - Main task dashboard
+- `/profile` - User profile page
+
+## API Integration
+
+The frontend communicates with the backend using Axios. Authentication is handled using JWT cookies from the backend.
+
+Main frontend API features:
+
+- Login and register
+- Restore user session
+- Logout
+- Create task
+- Get paginated tasks
+- Update task
+- Delete task
+- Change password
+- Update profile
+
+## Deployment
+
+The frontend is deployed on Vercel.
+
+Live app:
+
+```txt
+https://morae-frontend.vercel.app/
+```
+
+## Assignment Requirements Covered
+
+- React with TypeScript
+- Axios API calls
+- Login and Register authentication
+- JWT-based protected flow
+- Task list UI
+- Add task
+- Edit task
+- Delete task
+- Mark task as completed
+- Filter by Pending / Completed
+- Responsive UI using Tailwind CSS
