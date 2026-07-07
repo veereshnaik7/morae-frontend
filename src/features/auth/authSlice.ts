@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../api";
 import API from "./authApi";
 
 interface User {
@@ -79,7 +80,7 @@ export const restoreSession = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await API.post("/refresh-token");
-      const res = await API.get("/me");
+      const res = await api.get("/users/me");
       return res.data;
     } catch (error: any) {
       return rejectWithValue(
