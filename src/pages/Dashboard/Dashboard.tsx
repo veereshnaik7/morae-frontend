@@ -137,9 +137,10 @@ const Dashboard = () => {
           </div>
 
           <Routes>
-            <Route index element={<Navigate to="tasks" replace />} />
-            <Route path="tasks" element={<Tasks />} />
-            <Route path="profile" element={<Profile />} />
+            <Route index element={<Navigate to="/tasks" replace />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<Navigate to="/tasks" replace />} />
           </Routes>
         </main>
       </div>
