@@ -5,20 +5,16 @@ import api from "../../features/api";
 import { logoutUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 
-type ProfileType = {
-    id: string;
-    name: string;
-    email: string;
-    //   verified: boolean;
-};
-
 const Profile = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const authUser = useAppSelector((state) => state.auth.user);
 
-    const [profile, setProfile] = useState<ProfileType | null>(null);
-    const [profileForm, setProfileForm] = useState({ name: "", email: "" });
+    const [profileForm, setProfileForm] = useState({
+        name: "",
+        email: "",
+    });
+
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: "",
         newPassword: "",
@@ -39,7 +35,6 @@ const Profile = () => {
 
             const profileRes = await api.get("/users/me");
 
-            setProfile(profileRes.data.data);
             setProfileForm({
                 name: profileRes.data.data?.name || "",
                 email: profileRes.data.data?.email || authUser?.email || "",
@@ -63,8 +58,8 @@ const Profile = () => {
             setError("");
             setMessage("");
 
-            const res = await api.patch("/users/update", profileForm);
-            setProfile(res.data.data);
+            await api.patch("/users/update", profileForm);
+
             setMessage("Profile updated");
         } catch (err: any) {
             setError(err.response?.data?.error || "Could not update profile");
@@ -106,8 +101,6 @@ const Profile = () => {
     return (
         <>
             <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-8">
-
-
                 {error && (
                     <p className="mb-4 w-full max-w-xl rounded-md bg-red-50 px-4 py-3 text-red-700">
                         {error}
@@ -129,36 +122,44 @@ const Profile = () => {
                         onSubmit={handleProfileSubmit}
                         className="w-full max-w-xl space-y-4 rounded-md bg-white p-5 pt-12"
                     >
-                        <h2 className="text-2xl text-center underline font-bold">Profile Details</h2>
+                        <h2 className="text-center text-2xl font-bold underline">
+                            Profile Details
+                        </h2>
 
                         <div>
-                            <label className="mb-2 block text-sm font-semibold">Name</label>
+                            <label className="mb-2 block text-sm font-semibold">
+                                Name
+                            </label>
                             <input
                                 value={profileForm.name}
                                 onChange={(e) =>
-                                    setProfileForm({ ...profileForm, name: e.target.value })
+                                    setProfileForm({
+                                        ...profileForm,
+                                        name: e.target.value,
+                                    })
                                 }
                                 className="h-12 w-full rounded-md border border-neutral-200 px-3 outline-none focus:border-black"
                             />
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-semibold">Email</label>
+                            <label className="mb-2 block text-sm font-semibold">
+                                Email
+                            </label>
                             <input
                                 type="email"
                                 value={profileForm.email}
                                 onChange={(e) =>
-                                    setProfileForm({ ...profileForm, email: e.target.value })
+                                    setProfileForm({
+                                        ...profileForm,
+                                        email: e.target.value,
+                                    })
                                 }
                                 className="h-12 w-full rounded-md border border-neutral-200 px-3 outline-none focus:border-black"
                             />
                         </div>
 
-                        {/* <div className="rounded-md bg-neutral-100 px-3 py-3 text-sm font-medium">
-              Verified: {profile?.verified ? "Yes" : "No"}
-            </div> */}
-
-                        <div className="flex flex-col gap-3 reversed sm:flex-row sm:justify-between ">
+                        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -187,10 +188,12 @@ const Profile = () => {
                 <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6 backdrop-blur-sm">
                     <form
                         onSubmit={handlePasswordSubmit}
-                        className="w-full max-w-md overflow-hidden rounded-[4px] bg-white shadow-lg"
+                        className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-lg"
                     >
                         <div className="flex items-center justify-between bg-lime-300 px-5 py-4">
-                            <h3 className="text-xl font-black text-black">Change Password</h3>
+                            <h3 className="text-xl font-black text-black">
+                                Change Password
+                            </h3>
 
                             <div className="flex gap-2">
                                 <button
@@ -198,7 +201,11 @@ const Profile = () => {
                                     onClick={() => setShowPasswords(!showPasswords)}
                                     className="grid h-10 w-10 place-items-center rounded-full bg-black/30 text-white"
                                 >
-                                    {showPasswords ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPasswords ? (
+                                        <EyeOff size={18} />
+                                    ) : (
+                                        <Eye size={18} />
+                                    )}
                                 </button>
 
                                 <button
@@ -212,14 +219,20 @@ const Profile = () => {
                         </div>
 
                         <div className="space-y-4 p-5">
-                            {["currentPassword", "newPassword", "confirmPassword"].map((field) => (
+                            {(
+                                [
+                                    "currentPassword",
+                                    "newPassword",
+                                    "confirmPassword",
+                                ] as const
+                            ).map((field) => (
                                 <div key={field}>
-                                    <label className="mb-2 block text-sm font-bold text-black">
+                                    <label className="mb-2 block text-sm font-bold">
                                         {field === "currentPassword"
                                             ? "Current Password"
                                             : field === "newPassword"
-                                                ? "New Password"
-                                                : "Confirm Password"}
+                                            ? "New Password"
+                                            : "Confirm Password"}
                                     </label>
 
                                     <div className="relative">
@@ -230,14 +243,14 @@ const Profile = () => {
 
                                         <input
                                             type={showPasswords ? "text" : "password"}
-                                            value={passwordForm[field as keyof typeof passwordForm]}
+                                            value={passwordForm[field]}
                                             onChange={(e) =>
                                                 setPasswordForm({
                                                     ...passwordForm,
                                                     [field]: e.target.value,
                                                 })
                                             }
-                                            className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 pl-10 outline-none focus:border-black"
+                                            className="h-12 w-full rounded-md border border-black/10 bg-neutral-50 px-4 pl-10 outline-none focus:border-black"
                                             required
                                         />
                                     </div>
@@ -248,7 +261,7 @@ const Profile = () => {
                                 <button
                                     type="button"
                                     onClick={() => setPasswordModalOpen(false)}
-                                    className="h-12 rounded-[4px] border border-black px-6 font-bold"
+                                    className="h-12 rounded-md border border-black px-6 font-bold"
                                 >
                                     Cancel
                                 </button>
@@ -256,7 +269,7 @@ const Profile = () => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="flex h-12 items-center justify-center gap-2 rounded-[4px] bg-black px-6 font-bold text-white disabled:opacity-60"
+                                    className="flex h-12 items-center justify-center gap-2 rounded-md bg-black px-6 font-bold text-white disabled:opacity-60"
                                 >
                                     <Lock size={18} />
                                     {saving ? "Changing..." : "Change Password"}
