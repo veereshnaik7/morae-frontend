@@ -2,8 +2,7 @@ import * as Yup from "yup";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s.'-]{1,49}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^.{6,}$/;
 const otpRegex = /^\d{6}$/;
 const taskTitleRegex = /^[A-Za-z0-9][A-Za-z0-9\s.,'!?()#&-]{2,79}$/;
 
@@ -14,10 +13,7 @@ const email = Yup.string()
 
 const strongPassword = Yup.string()
   .required("Password is required")
-  .matches(
-    passwordRegex,
-    "Use 8+ chars with uppercase, lowercase, number and special character",
-  );
+  .matches(passwordRegex, "Password must be at least 6 characters");
 
 export const loginSchema = Yup.object({
   email,
