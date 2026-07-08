@@ -106,7 +106,7 @@ const Login = () => {
       <div className="mt-6 flex justify-between text-sm font-medium">
         <Link
           to="/forgot-password"
-          className="inline-flex items-center gap-1 px-2 py-1 font-medium"
+          className="inline-flex items-center gap-1 text-blue-600 font-semibold"
         >
           <span>Forgot Password</span>
           <ArrowRight size={16} />
@@ -114,7 +114,7 @@ const Login = () => {
 
         <Link
           to="/register"
-          className="inline-flex items-center gap-1 px-2 py-1 font-medium"
+          className="inline-flex items-center gap-1 text-blue-600 font-semibold"
         >
           <span>Create Account</span>
           <ArrowRight size={16} />
