@@ -78,7 +78,7 @@ const ForgotPassword = () => {
           disabled={loading}
           className="w-full h-14 rounded-xl bg-black text-white font-semibold flex items-center justify-center gap-2"
         >
-        
+
           {loading ? "Sending..." : "Send OTP"}
           <ArrowRight size={18} />
         </button>
@@ -88,7 +88,10 @@ const ForgotPassword = () => {
         to="/login"
         className="mt-6 inline-flex items-center gap-2 font-medium"
       >
-       Login <ArrowRight size={18} />
+        <span>Already have an account?</span>
+        <span className="inline-flex items-center gap-1 text-blue-600 font-semibold">
+          Login <ArrowRight size={18} />
+        </span>
       </Link>
     </AuthBox>
   );

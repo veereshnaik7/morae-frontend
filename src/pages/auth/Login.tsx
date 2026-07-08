@@ -97,19 +97,27 @@ const Login = () => {
           disabled={loading}
           className="w-full h-14 rounded-xl bg-black text-white font-semibold flex items-center justify-center gap-2"
         >
-         
+
           {loading ? "Logging in..." : "Login"}
           <ArrowRight size={18} />
         </button>
       </form>
 
       <div className="mt-6 flex justify-between text-sm font-medium">
-        <Link to="/forgot-password" className="flex items-center gap-1">
-          Forgot Password <ArrowRight size={16} />
+        <Link
+          to="/forgot-password"
+          className="inline-flex items-center gap-1 px-2 py-1 font-medium"
+        >
+          <span>Forgot Password</span>
+          <ArrowRight size={16} />
         </Link>
 
-        <Link to="/register" className="flex items-center gap-1">
-          Create Account <ArrowRight size={16} />
+        <Link
+          to="/register"
+          className="inline-flex items-center gap-1 px-2 py-1 font-medium"
+        >
+          <span>Create Account</span>
+          <ArrowRight size={16} />
         </Link>
       </div>
     </AuthBox>
