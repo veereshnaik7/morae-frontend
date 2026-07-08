@@ -86,7 +86,7 @@ const ForgotPassword = () => {
 
       <Link
         to="/login"
-        className="mt-6 inline-flex items-center gap-2 font-medium"
+        className="mt-6 inline-flex items-center gap-2 font-medium text-center"
       >
         <span>Already have an account?</span>
         <span className="inline-flex items-center gap-1 text-blue-600 font-semibold">
