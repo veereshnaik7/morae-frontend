@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
+import { useFormik } from "formik";
 import {
     Check,
     Pencil,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import api from "../../features/api";
 import { useToast } from "../../components/ToastProvider";
+import { taskSchema } from "../../validation/formSchemas";
 
 type Task = {
     _id: string;
@@ -51,7 +53,6 @@ const Tasks = () => {
     const [taskTotal, setTaskTotal] = useState(0);
     const [totalTaskPages, setTotalTaskPages] = useState(1);
 
-    const [taskForm, setTaskForm] = useState(emptyTaskForm);
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
     const [viewTask, setViewTask] = useState<Task | null>(null);
     const [taskModalOpen, setTaskModalOpen] = useState(false);
@@ -68,6 +69,33 @@ const Tasks = () => {
         () => tasks.filter((task) => task.status === "completed").length,
         [tasks]
     );
+
+    const taskFormik = useFormik({
+        initialValues: emptyTaskForm,
+        validationSchema: taskSchema,
+        onSubmit: async (values) => {
+            try {
+                setSaving(true);
+
+                const nextPage = editingTaskId ? taskPage : 1;
+
+                if (editingTaskId) {
+                    await api.patch(`/tasks/${editingTaskId}`, values);
+                    toast.success("Task updated successfully");
+                } else {
+                    await api.post("/tasks", values);
+                    toast.success("Task created successfully");
+                }
+
+                resetTaskForm();
+                await loadTasks(nextPage);
+            } catch (err: any) {
+                toast.error(err.response?.data?.error || "Could not save task");
+            } finally {
+                setSaving(false);
+            }
+        },
+    });
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -106,45 +134,20 @@ const Tasks = () => {
     }, [statusFilter, debouncedSearch]);
 
     const resetTaskForm = () => {
-        setTaskForm(emptyTaskForm);
+        taskFormik.resetForm({ values: emptyTaskForm });
         setEditingTaskId(null);
         setTaskModalOpen(false);
     };
 
     const openCreateTask = () => {
-        setTaskForm(emptyTaskForm);
+        taskFormik.resetForm({ values: emptyTaskForm });
         setEditingTaskId(null);
         setTaskModalOpen(true);
     };
 
-    const handleTaskSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        try {
-            setSaving(true);
-
-            const nextPage = editingTaskId ? taskPage : 1;
-
-            if (editingTaskId) {
-                await api.patch(`/tasks/${editingTaskId}`, taskForm);
-                toast.success("Task updated successfully");
-            } else {
-                await api.post("/tasks", taskForm);
-                toast.success("Task created successfully");
-            }
-
-            resetTaskForm();
-            await loadTasks(nextPage);
-        } catch (err: any) {
-            toast.error(err.response?.data?.error || "Could not save task");
-        } finally {
-            setSaving(false);
-        }
-    };
-
     const startEditTask = (task: Task) => {
         setEditingTaskId(task._id);
-        setTaskForm({
+        taskFormik.setValues({
             title: task.title,
             description: task.description || "",
             status: task.status,
@@ -491,7 +494,7 @@ const Tasks = () => {
             {taskModalOpen && (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6 backdrop-blur-sm">
                     <form
-                        onSubmit={handleTaskSubmit}
+                        onSubmit={taskFormik.handleSubmit}
                         className="w-full max-w-xl overflow-hidden rounded-[4px] bg-white shadow-lg"
                     >
                         <div className="flex items-center justify-between bg-lime-300 px-5 py-4">
@@ -509,65 +512,94 @@ const Tasks = () => {
                         </div>
 
                         <div className="space-y-4 p-5">
-                            <input
-                                value={taskForm.title}
-                                onChange={(e) =>
-                                    setTaskForm({ ...taskForm, title: e.target.value })
-                                }
-                                placeholder="Task title"
-                                className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
-                                required
-                            />
-
-                            <textarea
-                                value={taskForm.description}
-                                onChange={(e) =>
-                                    setTaskForm({ ...taskForm, description: e.target.value })
-                                }
-                                placeholder="Task description"
-                                rows={4}
-                                className="w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 py-3 outline-none focus:border-black"
-                            />
-
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <select
-                                    value={taskForm.status}
-                                    onChange={(e) =>
-                                        setTaskForm({
-                                            ...taskForm,
-                                            status: e.target.value as Task["status"],
-                                        })
-                                    }
-                                    className="h-12 rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-
-                                <select
-                                    value={taskForm.priority}
-                                    onChange={(e) =>
-                                        setTaskForm({
-                                            ...taskForm,
-                                            priority: e.target.value as Task["priority"],
-                                        })
-                                    }
-                                    className="h-12 rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
-                                >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
+                            <div>
+                                <input
+                                    name="title"
+                                    value={taskFormik.values.title}
+                                    onChange={taskFormik.handleChange}
+                                    onBlur={taskFormik.handleBlur}
+                                    placeholder="Task title"
+                                    className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
+                                />
+                                {taskFormik.touched.title && taskFormik.errors.title && (
+                                    <p className="mt-1 text-sm font-semibold text-red-600">
+                                        {taskFormik.errors.title}
+                                    </p>
+                                )}
                             </div>
 
-                            <input
-                                type="date"
-                                value={taskForm.dueDate}
-                                onChange={(e) =>
-                                    setTaskForm({ ...taskForm, dueDate: e.target.value })
-                                }
-                                className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
-                            />
+                            <div>
+                                <textarea
+                                    name="description"
+                                    value={taskFormik.values.description}
+                                    onChange={taskFormik.handleChange}
+                                    onBlur={taskFormik.handleBlur}
+                                    placeholder="Task description"
+                                    rows={4}
+                                    className="w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 py-3 outline-none focus:border-black"
+                                />
+                                {taskFormik.touched.description &&
+                                    taskFormik.errors.description && (
+                                        <p className="mt-1 text-sm font-semibold text-red-600">
+                                            {taskFormik.errors.description}
+                                        </p>
+                                    )}
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <select
+                                        name="status"
+                                        value={taskFormik.values.status}
+                                        onChange={taskFormik.handleChange}
+                                        onBlur={taskFormik.handleBlur}
+                                        className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                    {taskFormik.touched.status && taskFormik.errors.status && (
+                                        <p className="mt-1 text-sm font-semibold text-red-600">
+                                            {taskFormik.errors.status}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <select
+                                        name="priority"
+                                        value={taskFormik.values.priority}
+                                        onChange={taskFormik.handleChange}
+                                        onBlur={taskFormik.handleBlur}
+                                        className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
+                                    >
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                    {taskFormik.touched.priority && taskFormik.errors.priority && (
+                                        <p className="mt-1 text-sm font-semibold text-red-600">
+                                            {taskFormik.errors.priority}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div>
+                                <input
+                                    name="dueDate"
+                                    type="date"
+                                    value={taskFormik.values.dueDate}
+                                    onChange={taskFormik.handleChange}
+                                    onBlur={taskFormik.handleBlur}
+                                    className="h-12 w-full rounded-[4px] border border-black/10 bg-neutral-50 px-4 outline-none focus:border-black"
+                                />
+                                {taskFormik.touched.dueDate && taskFormik.errors.dueDate && (
+                                    <p className="mt-1 text-sm font-semibold text-red-600">
+                                        {taskFormik.errors.dueDate}
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                                 <button

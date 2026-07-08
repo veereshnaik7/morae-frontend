@@ -24,6 +24,8 @@ The frontend is built using React with TypeScript and styled with Tailwind CSS.
 - Paginated task listing
 - Responsive dashboard layout
 - Toast notifications for API responses
+- Form handling using Formik
+- Field validation using Yup schemas
 - Axios API integration
 - JWT authentication handled through backend cookies
 
@@ -34,6 +36,8 @@ The frontend is built using React with TypeScript and styled with Tailwind CSS.
 - Redux Toolkit
 - React Router
 - Axios
+- Formik
+- Yup
 - Tailwind CSS
 - Vite
 - Lucide React icons
@@ -128,6 +132,7 @@ https://morae-frontend.vercel.app/
 - React with TypeScript
 - Axios API calls
 - Login and Register authentication
+- Form handling with Formik and Yup validation schemas
 - JWT-based protected flow
 - Task list UI
 - Add task

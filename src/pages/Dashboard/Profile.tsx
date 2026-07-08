@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useFormik } from "formik";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../features/api";
 import { logoutUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useToast } from "../../components/ToastProvider";
+import { changePasswordSchema, profileSchema } from "../../validation/formSchemas";
 
 const Profile = () => {
     const dispatch = useAppDispatch();
@@ -12,21 +14,60 @@ const Profile = () => {
     const toast = useToast();
     const authUser = useAppSelector((state) => state.auth.user);
 
-    const [profileForm, setProfileForm] = useState({
-        name: "",
-        email: "",
-    });
-
-    const [passwordForm, setPasswordForm] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
-
     const [showPasswords, setShowPasswords] = useState(false);
     const [passwordModalOpen, setPasswordModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+
+    const profileFormik = useFormik({
+        initialValues: {
+            name: "",
+            email: "",
+        },
+        validationSchema: profileSchema,
+        onSubmit: async (values) => {
+            try {
+                setSaving(true);
+
+                await api.patch("/users/update", values);
+
+                toast.success("Profile updated");
+            } catch (err: any) {
+                toast.error(err.response?.data?.error || "Could not update profile");
+            } finally {
+                setSaving(false);
+            }
+        },
+    });
+
+    const passwordFormik = useFormik({
+        initialValues: {
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+        },
+        validationSchema: changePasswordSchema,
+        onSubmit: async (values) => {
+            try {
+                setSaving(true);
+
+                const res = await api.post("/auth/change-password", values);
+
+                passwordFormik.resetForm();
+                setPasswordModalOpen(false);
+                toast.success(res.data.message || "Password changed");
+
+                setTimeout(async () => {
+                    await dispatch(logoutUser());
+                    navigate("/login", { replace: true });
+                }, 900);
+            } catch (err: any) {
+                toast.error(err.response?.data?.error || "Could not change password");
+            } finally {
+                setSaving(false);
+            }
+        },
+    });
 
     const loadProfile = async () => {
         try {
@@ -34,7 +75,7 @@ const Profile = () => {
 
             const profileRes = await api.get("/users/me");
 
-            setProfileForm({
+            profileFormik.setValues({
                 name: profileRes.data.data?.name || "",
                 email: profileRes.data.data?.email || authUser?.email || "",
             });
@@ -49,50 +90,6 @@ const Profile = () => {
         loadProfile();
     }, []);
 
-    const handleProfileSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        try {
-            setSaving(true);
-
-            await api.patch("/users/update", profileForm);
-
-            toast.success("Profile updated");
-        } catch (err: any) {
-            toast.error(err.response?.data?.error || "Could not update profile");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handlePasswordSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        try {
-            setSaving(true);
-
-            const res = await api.post("/auth/change-password", passwordForm);
-
-            setPasswordForm({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-
-            setPasswordModalOpen(false);
-            toast.success(res.data.message || "Password changed");
-
-            setTimeout(async () => {
-                await dispatch(logoutUser());
-                navigate("/login", { replace: true });
-            }, 900);
-        } catch (err: any) {
-            toast.error(err.response?.data?.error || "Could not change password");
-        } finally {
-            setSaving(false);
-        }
-    };
-
     return (
         <>
             <div className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-8">
@@ -102,7 +99,7 @@ const Profile = () => {
                     </div>
                 ) : (
                     <form
-                        onSubmit={handleProfileSubmit}
+                        onSubmit={profileFormik.handleSubmit}
                         className="w-full max-w-xl space-y-4 rounded-md bg-white p-5 pt-12"
                     >
                         <h2 className="text-center text-2xl font-bold underline">
@@ -114,15 +111,17 @@ const Profile = () => {
                                 Name
                             </label>
                             <input
-                                value={profileForm.name}
-                                onChange={(e) =>
-                                    setProfileForm({
-                                        ...profileForm,
-                                        name: e.target.value,
-                                    })
-                                }
+                                name="name"
+                                value={profileFormik.values.name}
+                                onChange={profileFormik.handleChange}
+                                onBlur={profileFormik.handleBlur}
                                 className="h-12 w-full rounded-md border border-neutral-200 px-3 outline-none focus:border-black"
                             />
+                            {profileFormik.touched.name && profileFormik.errors.name && (
+                                <p className="mt-1 text-sm font-semibold text-red-600">
+                                    {profileFormik.errors.name}
+                                </p>
+                            )}
                         </div>
 
                         <div>
@@ -130,16 +129,18 @@ const Profile = () => {
                                 Email
                             </label>
                             <input
+                                name="email"
                                 type="email"
-                                value={profileForm.email}
-                                onChange={(e) =>
-                                    setProfileForm({
-                                        ...profileForm,
-                                        email: e.target.value,
-                                    })
-                                }
+                                value={profileFormik.values.email}
+                                onChange={profileFormik.handleChange}
+                                onBlur={profileFormik.handleBlur}
                                 className="h-12 w-full rounded-md border border-neutral-200 px-3 outline-none focus:border-black"
                             />
+                            {profileFormik.touched.email && profileFormik.errors.email && (
+                                <p className="mt-1 text-sm font-semibold text-red-600">
+                                    {profileFormik.errors.email}
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
@@ -166,7 +167,7 @@ const Profile = () => {
             {passwordModalOpen && (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6 backdrop-blur-sm">
                     <form
-                        onSubmit={handlePasswordSubmit}
+                        onSubmit={passwordFormik.handleSubmit}
                         className="w-full max-w-md overflow-hidden rounded-md bg-white shadow-lg"
                     >
                         <div className="flex items-center justify-between bg-lime-300 px-5 py-4">
@@ -221,18 +222,20 @@ const Profile = () => {
                                         />
 
                                         <input
+                                            name={field}
                                             type={showPasswords ? "text" : "password"}
-                                            value={passwordForm[field]}
-                                            onChange={(e) =>
-                                                setPasswordForm({
-                                                    ...passwordForm,
-                                                    [field]: e.target.value,
-                                                })
-                                            }
+                                            value={passwordFormik.values[field]}
+                                            onChange={passwordFormik.handleChange}
+                                            onBlur={passwordFormik.handleBlur}
                                             className="h-12 w-full rounded-md border border-black/10 bg-neutral-50 px-4 pl-10 outline-none focus:border-black"
-                                            required
                                         />
                                     </div>
+                                    {passwordFormik.touched[field] &&
+                                        passwordFormik.errors[field] && (
+                                            <p className="mt-1 text-sm font-semibold text-red-600">
+                                                {passwordFormik.errors[field]}
+                                            </p>
+                                        )}
                                 </div>
                             ))}
 
